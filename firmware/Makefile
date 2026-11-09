@@ -21,6 +21,8 @@ C_SOURCES = \
   Drivers/GD32E23x_standard_peripheral/Source/gd32e23x_exti.c \
   Drivers/GD32E23x_standard_peripheral/Source/gd32e23x_fmc.c \
   Drivers/GD32E23x_standard_peripheral/Source/gd32e23x_timer.c \
+  Drivers/GD32E23x_standard_peripheral/Source/gd32e23x_i2c.c \
+  Drivers/GD32E23x_standard_peripheral/Source/gd32e23x_dma.c \
   Bsp/bsp_systick.c \
   Bsp/bsp_i2c.c \
   Bsp/bsp_oled.c \

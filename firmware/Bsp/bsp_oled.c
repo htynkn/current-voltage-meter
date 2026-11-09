@@ -5,16 +5,16 @@
 #include <string.h>
 #include <stdlib.h>
 
-static uint8_t s_oled_buffer[OLED_WIDTH * (OLED_HEIGHT / 8)];
+#define OLED_BUF_SIZE (OLED_WIDTH * (OLED_HEIGHT / 8))
+static uint8_t s_oled_dma_buffer[1 + OLED_BUF_SIZE];
+#define s_oled_buffer (&s_oled_dma_buffer[1])
+
 static uint8_t s_oled_addr = OLED_I2C_ADDR;
 
 static void oled_write_cmd(uint8_t cmd)
 {
-    bsp_i2c_start();
-    bsp_i2c_write_byte(s_oled_addr << 1);
-    bsp_i2c_write_byte(0x00); /* Co = 0, D/C# = 0 (command) */
-    bsp_i2c_write_byte(cmd);
-    bsp_i2c_stop();
+    uint8_t buf[2] = {0x00, cmd};
+    bsp_i2c_write_bytes(s_oled_addr, buf, 2);
 }
 
 bool bsp_oled_init(void)
@@ -41,7 +41,7 @@ bool bsp_oled_init(void)
     oled_write_cmd(0x8D); /* set charge pump enable */
     oled_write_cmd(0x14);
     oled_write_cmd(0x20); /* set memory addressing mode */
-    oled_write_cmd(0x02); /* page addressing mode */
+    oled_write_cmd(0x00); /* 0x00 = horizontal addressing mode */
     oled_write_cmd(0xA1); /* set segment re-map 0 to 127 */
     oled_write_cmd(0xC8); /* Set COM Output Scan Direction */
     oled_write_cmd(0xDA); /* set com pins hardware configuration */
@@ -64,24 +64,22 @@ bool bsp_oled_init(void)
 
 void bsp_oled_clear(void)
 {
-    memset(s_oled_buffer, 0, sizeof(s_oled_buffer));
+    memset(s_oled_buffer, 0, OLED_BUF_SIZE);
 }
 
 void bsp_oled_update(void)
 {
-    for (uint8_t page = 0; page < 8; page++) {
-        oled_write_cmd(0xB0 + page); /* Page start address */
-        oled_write_cmd(0x00);        /* Lower column start address */
-        oled_write_cmd(0x10);        /* Higher column start address */
+    /* Set column address range: 0 .. 127 */
+    uint8_t col_cmd[4] = {0x00, 0x21, 0x00, 0x7F};
+    bsp_i2c_write_bytes(s_oled_addr, col_cmd, 4);
 
-        bsp_i2c_start();
-        bsp_i2c_write_byte(s_oled_addr << 1);
-        bsp_i2c_write_byte(0x40); /* Co = 0, D/C# = 1 (data) */
-        for (uint8_t col = 0; col < OLED_WIDTH; col++) {
-            bsp_i2c_write_byte(s_oled_buffer[page * OLED_WIDTH + col]);
-        }
-        bsp_i2c_stop();
-    }
+    /* Set page address range: 0 .. 7 */
+    uint8_t page_cmd[4] = {0x00, 0x22, 0x00, 0x07};
+    bsp_i2c_write_bytes(s_oled_addr, page_cmd, 4);
+
+    /* Transmit the full 1025 bytes (0x40 control byte + 1024 bytes buffer) via DMA */
+    s_oled_dma_buffer[0] = 0x40; /* Data mode */
+    bsp_i2c_dma_transmit_async(s_oled_addr, s_oled_dma_buffer, sizeof(s_oled_dma_buffer));
 }
 
 void bsp_oled_set_contrast(uint8_t contrast)
