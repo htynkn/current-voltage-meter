@@ -16,10 +16,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup GNU Arm Embedded Toolchain
-        uses: xpack-dev-tools/setup-arm-none-eabi-gcc-action@v2
-        with:
-          arm-none-eabi-gcc-version: '13.2.1-1.1'
+      - name: Install Arm GNU Toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends gcc-arm-none-eabi libnewlib-arm-none-eabi binutils-arm-none-eabi
 
       - name: Compile Firmware
         run: |
