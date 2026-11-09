@@ -1,0 +1,41 @@
+name: Build Firmware
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build GD32 Firmware
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup GNU Arm Embedded Toolchain
+        uses: xpack-dev-tools/setup-arm-none-eabi-gcc-action@v2
+        with:
+          arm-none-eabi-gcc-version: '13.2.1-1.1'
+
+      - name: Compile Firmware
+        run: |
+          make -C firmware all
+
+      - name: Display Binary Size Report
+        run: |
+          arm-none-eabi-size -B firmware/build/current_voltage_meter.elf
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: current_voltage_meter_firmware
+          path: |
+            firmware/build/current_voltage_meter.elf
+            firmware/build/current_voltage_meter.hex
+            firmware/build/current_voltage_meter.bin
+            firmware/build/current_voltage_meter.map
+          if-no-files-found: error

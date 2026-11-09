@@ -1,5 +1,4 @@
 #include "gd32e23x_it.h"
-#include "bsp_systick.h"
 
 void NMI_Handler(void)
 {
@@ -11,15 +10,7 @@ void HardFault_Handler(void)
     while (1);
 }
 
-void SVC_Handler(void)
-{
-}
-
-void PendSV_Handler(void)
-{
-}
-
-void SysTick_Handler(void)
-{
-    bsp_systick_isr();
-}
+/*
+ * SVC_Handler, PendSV_Handler, and SysTick_Handler
+ * are implemented by FreeRTOS port in portasm.c and port.c
+ */

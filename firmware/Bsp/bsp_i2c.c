@@ -1,4 +1,24 @@
 #include "bsp_i2c.h"
+#include "FreeRTOS.h"
+#include "semphr.h"
+#include "task.h"
+
+static SemaphoreHandle_t s_i2c_mutex = NULL;
+static StaticSemaphore_t s_i2c_mutex_buffer;
+
+void bsp_i2c_lock(void)
+{
+    if (s_i2c_mutex != NULL && xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
+        xSemaphoreTake(s_i2c_mutex, portMAX_DELAY);
+    }
+}
+
+void bsp_i2c_unlock(void)
+{
+    if (s_i2c_mutex != NULL && xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
+        xSemaphoreGive(s_i2c_mutex);
+    }
+}
 
 static inline void i2c_delay(void)
 {
@@ -36,6 +56,10 @@ static inline uint8_t sda_read(void)
 
 void bsp_i2c_init(void)
 {
+    if (s_i2c_mutex == NULL) {
+        s_i2c_mutex = xSemaphoreCreateMutexStatic(&s_i2c_mutex_buffer);
+    }
+
     rcu_periph_clock_enable(I2C_RCU_PORT);
 
     /* Configure SCL (PB6) and SDA (PB7) as Open-Drain Output with internal Pull-up */

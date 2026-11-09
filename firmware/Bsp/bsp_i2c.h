@@ -11,6 +11,8 @@
 #define I2C_RCU_PORT    RCU_GPIOB
 
 void bsp_i2c_init(void);
+void bsp_i2c_lock(void);
+void bsp_i2c_unlock(void);
 void bsp_i2c_start(void);
 void bsp_i2c_stop(void);
 bool bsp_i2c_write_byte(uint8_t byte);

@@ -30,7 +30,13 @@ C_SOURCES = \
   App/app_meter.c \
   App/app_ui.c \
   App/gd32e23x_it.c \
-  App/main.c
+  App/main.c \
+  FreeRTOS/tasks.c \
+  FreeRTOS/list.c \
+  FreeRTOS/queue.c \
+  FreeRTOS/portable/MemMang/heap_4.c \
+  FreeRTOS/portable/GCC/ARM_CM23_NTZ/non_secure/port.c \
+  FreeRTOS/portable/GCC/ARM_CM23_NTZ/non_secure/portasm.c
 
 # ASM Sources
 ASM_SOURCES = \
@@ -42,7 +48,9 @@ C_INCLUDES = \
   -IDrivers/CMSIS/Core \
   -IDrivers/GD32E23x_standard_peripheral/Include \
   -IBsp \
-  -IApp
+  -IApp \
+  -IFreeRTOS/include \
+  -IFreeRTOS/portable/GCC/ARM_CM23_NTZ/non_secure
 
 # Defines
 C_DEFS = \

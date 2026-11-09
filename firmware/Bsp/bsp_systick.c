@@ -1,21 +1,27 @@
 #include "bsp_systick.h"
+#include "FreeRTOS.h"
+#include "task.h"
 
 static volatile uint32_t s_tick_count = 0;
-static volatile uint32_t s_delay_count = 0;
 
 void bsp_systick_init(void)
 {
-    /* 1ms tick based on SystemCoreClock (72MHz) */
-    if (SysTick_Config(SystemCoreClock / 1000U)) {
-        while (1);
-    }
-    NVIC_SetPriority(SysTick_IRQn, 0x00U);
+    SystemCoreClockUpdate();
 }
 
 void bsp_delay_ms(uint32_t ms)
 {
-    uint32_t start = s_tick_count;
-    while ((s_tick_count - start) < ms);
+    if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
+        TickType_t ticks = pdMS_TO_TICKS(ms);
+        if (ticks == 0) {
+            ticks = 1;
+        }
+        vTaskDelay(ticks);
+    } else {
+        while (ms--) {
+            bsp_delay_us(1000);
+        }
+    }
 }
 
 void bsp_delay_us(uint32_t us)
@@ -29,13 +35,13 @@ void bsp_delay_us(uint32_t us)
 
 uint32_t bsp_get_tick_ms(void)
 {
+    if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
+        return (uint32_t)(xTaskGetTickCount() * (1000 / configTICK_RATE_HZ));
+    }
     return s_tick_count;
 }
 
 void bsp_systick_isr(void)
 {
     s_tick_count++;
-    if (s_delay_count > 0) {
-        s_delay_count--;
-    }
 }
