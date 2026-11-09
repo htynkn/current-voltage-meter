@@ -1,0 +1,20 @@
+# Build artifacts
+build/
+firmware/build/
+*.bin
+*.hex
+*.elf
+*.map
+*.lst
+*.o
+*.d
+
+# Python
+__pycache__/
+*.pyc
+
+# IDE and editors
+.vscode/
+.idea/
+*.swp
+*~
